@@ -1,0 +1,97 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+http://hamelg.blogspot.com/2015/09/introduction-to-r-part-29-decision-trees.html
+
+```{r}
+library(tidyverse)
+library(magrittr)
+library(precis)
+```
+```{r}
+
+train <- read_csv("train.csv")
+train %<>% 
+  mutate_at(c('Survived','Pclass','Sex','Embarked'), as.factor) %>% 
+  mutate()
+glimpse(train)
+summary(train)
+
+```
+
+```{r}
+train %>% 
+  count(Survived) %>% 
+  mutate(freq = n / sum(n))
+
+train %>% 
+  count(Sex, Survived) %>% 
+  mutate(freq = n / sum(n))
+
+```
+
+```{r}
+library(rpart)
+fit <- rpart(Survived ~ Pclass + Sex + Age + SibSp + Parch + Fare + Embarked,
+               data=train,
+               method="class")
+plot(fit)
+text(fit)
+```
+
+```{r}
+library(rattle)
+library(rpart.plot)
+library(RColorBrewer)
+
+fancyRpartPlot(fit)
+```
+
+```{r}
+library(caret)
+library(mlbench)
+data(Sonar)
+set.seed(107)
+# summary(Sonar)
+glimpse(Sonar)
+
+inTrain <- createDataPartition(y = Sonar$Class,
+                                ## the outcome data are needed
+                                p = .75,
+                                ## The percentage of data in the
+                                ## training set
+                                list = FALSE)
+## The format of the results
+
+## The output is a set of integers for the rows of Sonar
+## that belong in the training set.
+str(inTrain)
+```
+```{r}
+training <- Sonar[ inTrain,]
+testing <- Sonar[-inTrain,]
+nrow(training)
+```
+
+```{r}
+plsFit <- train(
+  Class ~ .,
+  data = training,
+  method = "pls",
+  ## Center and scale the predictors for the training
+  ## set and all future samples.
+  preProc = c("center", "scale")
+  )
+```
+
+```{r}
+set.seed(849)
+bort <- train(Survived ~ Pclass + Sex + Age + SibSp + Parch + Fare + Embarked, 
+              data = train,
+              method = "rpart")
+
+```
+
+
